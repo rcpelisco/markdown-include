@@ -118,6 +118,7 @@ exports.compileFiles = function (path) {
 			throw err;
 		}
 
+		let output = ''
 		self.options = JSON.parse(data.toString());
 		var files = self.options.files;
 		var i;
@@ -145,7 +146,9 @@ exports.compileFiles = function (path) {
 			self.build[file].parsedData = self.resolveCustomTags(self.build[file].parsedData);
 		}
 
-		deferred.resolve(self.writeFile(self.build[file].parsedData));
+		for (let i = 0; i < files.length; i++)	output += self.build[files[i]].parsedData
+
+		deferred.resolve(self.writeFile(output));
 	});
 
 	return deferred.promise;
