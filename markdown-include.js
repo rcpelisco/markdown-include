@@ -122,7 +122,7 @@ exports.compileFiles = function (args) {
 		return;
 	}
 	let files = fs.readdirSync(startPath);
-	let output = ''
+	let output = `# ${args.title} \n\n`
 	console.log('Compiling ...')
 	files.forEach((file) => {
 		let filename = pth.join(startPath, file);
@@ -139,7 +139,9 @@ exports.compileFiles = function (args) {
 			output += self.build[filename].parsedData + '\n'
 		}
 	})
+
 	deferred.resolve(self.writeFile(output));
+	
 	return deferred.promise
 };
 

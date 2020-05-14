@@ -17,12 +17,18 @@ const argv = require('yargs')
         type: 'string',
         demandOption: true
     })
+    .option('title', {
+        alias: 't',
+        description: 'Title of the compiled .md',
+        type: 'string',
+        demandOption: true
+    })
     .help()
     .alias('help', 'h')
     .argv
 
 var markdownInclude = require('../markdown-include');
 
-markdownInclude.compileFiles({output: argv.output, files: argv.files}).then(function () {
+markdownInclude.compileFiles({output: argv.output, files: argv.files, title: argv.title}).then(function () {
 	console.info(markdownInclude.options.build + ' have been built successfully');
 });
