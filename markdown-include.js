@@ -8,6 +8,7 @@
 'use strict';
 
 var fs = require('fs');
+var pth = require('path');
 var q = require('q');
 
 this.ignoreTag = ' !ignore';
@@ -106,52 +107,40 @@ exports.buildLinkString = function (str) {
 
 /**
  * Compile files from markdown.json
- * @param  {String} path File path to markdown.json
+ * @param  {String} args Arguments from the command line
  * @return {Object}      Promise to be resolved
  */
-exports.compileFiles = function (path) {
+exports.compileFiles = function (args) {
 	var deferred = q.defer();
 	var self = this;
 
-	fs.readFile(path, function (err, data) {
-		if (err) {
-			throw err;
-		}
+	self.options = {build: pth.resolve(args.output)}
+	let startPath = args.files
 
-		let output = ''
-		self.options = JSON.parse(data.toString());
-		var files = self.options.files;
-		var i;
+	if (!fs.existsSync(startPath)){
+		console.log("no dir ",startPath);
+		return;
+	}
+	let files = fs.readdirSync(startPath);
+	let output = ''
+	console.log('Compiling ...')
+	files.forEach((file) => {
+		let filename = pth.join(startPath, file);
+		console.log(filename)
+		let stat = fs.lstatSync(filename)
 
-		for (i = 0; i < files.length; i += 1) {
-			var file = files[i];
-
-			self.processFile(file);
-			self.build[file].parsedData = self.stripTagsInFile({
-				data: self.build[file].parsedData,
+		if(!stat.isDirectory()) {
+			self.processFile(filename)
+			self.build[filename].parsedData = self.stripTagsInFile({
+				data: self.build[filename].parsedData,
 				pattern: self.ignorePattern,
 				string: self.ignoreTag
 			});
-
-			if (self.options.tableOfContents) {
-				self.compileHeadingTags(file);
-
-				if (self.options.tableOfContents.heading && self.tableOfContents) {
-					self.build[file].parsedData = self.options.tableOfContents.heading + '\n\n' + self.tableOfContents + '\n\n' + self.build[file].parsedData;
-				}
-			}
+			output += self.build[filename].parsedData
 		}
-
-		if (self.customTags && self.customTags.length) {
-			self.build[file].parsedData = self.resolveCustomTags(self.build[file].parsedData);
-		}
-
-		for (let i = 0; i < files.length; i++)	output += self.build[files[i]].parsedData
-
-		deferred.resolve(self.writeFile(output));
-	});
-
-	return deferred.promise;
+	})
+	deferred.resolve(self.writeFile(output));
+	return deferred.promise
 };
 
 /**
