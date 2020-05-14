@@ -136,7 +136,7 @@ exports.compileFiles = function (args) {
 				pattern: self.ignorePattern,
 				string: self.ignoreTag
 			});
-			output += self.build[filename].parsedData
+			output += self.build[filename].parsedData + '\n'
 		}
 	})
 	deferred.resolve(self.writeFile(output));
